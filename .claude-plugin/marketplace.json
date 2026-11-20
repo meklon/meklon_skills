@@ -1,0 +1,16 @@
+{
+  "name": "meklon-skills",
+  "owner": {
+    "name": "meklon"
+  },
+  "metadata": {
+    "description": "A personal collection of Claude Code plugins and skills."
+  },
+  "plugins": [
+    {
+      "name": "diagrams",
+      "source": "./plugins/diagrams",
+      "description": "Engineering illustrations as static PNG/SVG for reports, issue trackers and clients: architecture, step-by-step processes, status boards, roadmaps/gantt, incident write-ups. A Python SVG kit with three themes (light, graphite, night), bundled IBM Plex fonts, a layout linter (overlapping labels, text outside boxes, arrows through boxes, tiny type in the preview, orphan words) and a palette checker (contrast, colour blindness, greyscale). A subagent draws; before it starts the user picks Opus or Sonnet."
+    }
+  ]
+}
