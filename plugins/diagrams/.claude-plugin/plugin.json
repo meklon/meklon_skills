@@ -1,0 +1,8 @@
+{
+  "name": "diagrams",
+  "version": "0.1.0",
+  "description": "Engineering illustrations as static PNG/SVG for reports, task trackers and clients: architecture diagrams, step-by-step processes, status boards, roadmaps/gantt and incident write-up dashboards. A Python SVG kit with three themes (light, graphite, night), bundled IBM Plex fonts, a layout linter (overlapping labels, text outside boxes, arrows through boxes, tiny type at preview size) and a palette checker (WCAG contrast, colour-vision deficiency, greyscale).",
+  "author": {
+    "name": "meklon"
+  }
+}
