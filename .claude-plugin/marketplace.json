@@ -4,13 +4,13 @@
     "name": "meklon"
   },
   "metadata": {
-    "description": "Личная коллекция плагинов и скиллов для Claude Code."
+    "description": "A personal collection of Claude Code plugins and skills."
   },
   "plugins": [
     {
       "name": "diagrams",
       "source": "./plugins/diagrams",
-      "description": "Инженерные иллюстрации статичными PNG/SVG для отчётов, трекеров и клиентов: архитектура, процесс по шагам, статус-борд, роадмап/гант, разбор инцидента. SVG-кит на Python с тремя темами (light, graphite, night), шрифты IBM Plex в комплекте, линтер вёрстки (перекрытие подписей, текст вне блока, стрелка сквозь блок, мелкий кегль в превью, висячие слова) и проверка палитры (контраст, цветослепота, серый). Рисует субагент; перед стартом — выбор Opus или Sonnet."
+      "description": "Engineering illustrations as static PNG/SVG for reports, issue trackers and clients: architecture, step-by-step processes, status boards, roadmaps/gantt, incident write-ups. A Python SVG kit with three themes (light, graphite, night), bundled IBM Plex fonts, a layout linter (overlapping labels, text outside boxes, arrows through boxes, tiny type in the preview, orphan words) and a palette checker (contrast, colour blindness, greyscale). A subagent draws; before it starts the user picks Opus or Sonnet."
     }
   ]
 }

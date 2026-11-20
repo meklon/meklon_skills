@@ -3,241 +3,253 @@ name: illustration
 description: >-
   Use when an engineering illustration is needed as a static image — an
   architecture or target-state diagram, a step-by-step process or rollout flow,
-  a status board, a roadmap or gantt, an incident write-up with charts — for an
-  task-tracker report (Asana, Jira…), a client, a slide or a document; also when an existing generated
-  diagram has overlapping labels, text spilling out of boxes, arrows crossing
-  boxes or is unreadable in a small preview. Триггеры: «нарисуй схему», «сделай
-  иллюстрацию / картинку к отчёту», «схема архитектуры (as-built / целевая)»,
-  «статус-борд», «роадмап / гант картинкой», «разбор инцидента с графиками»,
-  «подписи наезжают», «не читается в превью».
+  a status board, a roadmap or gantt, an incident write-up with charts — for a
+  report, a ticket in an issue tracker, a client, a slide or a document; also
+  when an existing generated diagram has overlapping labels, text spilling out
+  of boxes, arrows crossing boxes or is unreadable in a small preview. Triggers:
+  "draw a diagram", "make an illustration / a picture for the report",
+  "architecture diagram (as-built / target)", "status board", "roadmap / gantt
+  as an image", "incident write-up with charts", "labels overlap", "unreadable
+  in the preview".
 ---
 
-# Инженерные иллюстрации
+# Engineering illustrations
 
-Статичная картинка (PNG + SVG), которую инженер прикладывает к отчёту, задаче в
-трекере (Asana, Jira…), письму клиенту или слайду. Рисуется Python-скриптом на ките из
-`scripts/`: кит знает геометрию каждого элемента, поэтому качество проверяется
-автоматически, а не на глаз.
+A static picture (PNG + SVG) an engineer attaches to a report, a ticket, an
+email to a client or a slide. It is drawn by a Python script on the kit in
+`scripts/`: the kit knows the geometry of every element, so quality is checked
+automatically, not by eye.
 
-**Главное:** картинка отвечает на один вопрос, читается в превью шириной
-1000 px и спокойна по стилю. Опорная стилистика ниже — ориентир, а не шаблон:
-тема, жанр и клиент могут быть любыми. Жёсткие только измеримые пороги.
+**The point:** the picture answers one question, reads in a 1000 px wide
+preview and is calm in style. The reference style below is a guide, not a
+template: topic, genre and audience can be anything. Only measurable thresholds
+are hard rules.
 
-**Когда НЕ этот скилл:** интерактивный дашборд или страница — Artifact /
-`dataviz`; схема в README для инженеров, которую будут править руками, — Mermaid.
+**Not this skill:** an interactive dashboard or web page — build HTML instead;
+a diagram in an engineers' README that people will edit by hand — Mermaid.
 
-## Кто рисует
+## Who draws
 
-**Рисует субагент, основная сессия ставит задачу и показывает результат.**
-Рисование накапливает ~100–130k токенов (превью, версии `gen.py`, вывод
-линтера) — в основной сессии они перечитывались бы на каждом следующем ходу.
-Сама основная сессия рисует, только если картинка крошечная (уровня
-`examples/hello.py`) или пользователь прямо попросил рисовать здесь.
+**A subagent draws; the main session sets the task and shows the result.**
+Drawing accumulates ~100–130k tokens (previews, versions of `gen.py`, linter
+output) — in the main session they would be re-read on every later turn.
+The main session draws itself only for a tiny picture (the size of
+`examples/hello.py`) or when the user explicitly asks to draw right here.
 
-**1. До запуска — один вопрос пользователю** (AskUserQuestion, если есть):
-чем рисовать.
+**1. Before starting — one question to the user** (AskUserQuestion if
+available): which model draws.
 
-| Модель | Цена и время (ориентир) | Что получится |
+| Model | Cost and time (rough) | What you get |
 |---|---|---|
-| Opus | ≈ $3–4, ~6 мин | полнее и аккуратнее: больше фактов на картинке, тщательная вёрстка |
-| Sonnet | ≈ $0.5, 1–2 мин | **проще**: беднее по содержанию, часть фактов может не попасть, вид ближе к наброску |
+| Opus | ≈ $3–4, ~6 min | fuller and neater: more facts on the picture, careful layout |
+| Sonnet | ≈ $0.5, 1–2 min | **simpler**: thinner content, some facts may not make it, closer to a sketch |
 
-Ориентир — замер на одной схеме архитектуры (20.11.2026), не обещание.
-Пользователь уже сказал модель, «быстро» или «подешевле» — не переспрашивай.
-Предлагаешь тему не `light` (см. «Темы») — спроси в том же вопросе.
+The figures come from one architecture diagram measured on 2026-11-20 — a
+guide, not a promise. If the user already named the model, or said "quick" or
+"cheaper", do not ask again. If you propose a theme other than `light` (see
+"Themes"), ask in the same question.
 
-**2. Запусти субагента** (Agent, `model` по ответу) с заданием из таких частей:
-- путь к этому SKILL.md и папка скилла — «прочитай и следуй»;
-- **факты дословно**, как их дал пользователь или как они установлены в
-  разговоре, с датами и единицами; читатель, язык, тема;
-- правило: на картинке только то, что есть в фактах; формулировки, которые
-  требуют проверки, — не рисовать, а вынести в отчёт;
-- папка для результата (папка задачи или scratchpad);
-- что вернуть: пути к PNG/превью/`gen.py`, итог `write()`, оставленные WARN и
-  почему, вопросы к фактам.
+**2. Start the subagent** (Agent, `model` per the answer) with a task made of:
+- the path to this SKILL.md and the skill folder — "read it and follow it";
+- **the facts verbatim**, as the user gave them or as they were established in
+  the conversation, with dates and units; the reader, the language, the theme;
+- the rule: only what is in the facts goes on the picture; wording that needs
+  checking is not drawn but listed in the report;
+- the output folder (the task folder or a scratch folder);
+- what to return: paths to the PNG / preview / `gen.py`, the `write()` result,
+  the WARNs left and why, questions about the facts.
 
-Субагент не может спросить пользователя — всё, что нужно решить, решается до
-запуска.
+The subagent cannot ask the user — everything that needs deciding is decided
+before it starts.
 
-**3. Покажи результат:** Read на превью, коротко — итог проверок и вопросы
-субагента. Правки пользователя («сдвинь», «убери») — SendMessage тому же
-субагенту: он помнит свой `gen.py` и правит, а не рисует заново.
+**3. Show the result:** Read the preview; briefly — the check results and the
+subagent's questions. The user's edits ("move this", "drop that") go to the
+same subagent via SendMessage: it remembers its `gen.py` and edits it instead
+of drawing from scratch.
 
-## Цикл работы (обязательный — для того, кто рисует)
+## Work cycle (mandatory — for whoever draws)
 
-1. **Вопрос и форма.** Сформулируй один вопрос картинки. Выбери форму: поток
-   (стрелки), время (шкала), сравнение (таблица, бары), состояние (плитки,
-   статусы). Не помещается — две картинки, а не мельче кегль.
-2. **Факты отдельно от раскладки.** Данные — списками/словарями вверху `gen.py`,
-   ниже — раскладка на ките. Цифры только проверенные, с датой и единицами.
-   Начинай с копии `examples/hello.py`; API — `references/kit-api.md`, прочитай
-   **один раз**. `kit.py` целиком не читай (56 КБ в контексте до конца работы):
-   нужна деталь — `grep -n "^def имя" -A 25 scripts/kit.py`. Большой пример
-   `examples/light-architecture/gen.py` — тоже только grep по нужному приёму.
-3. **Рендер:** `write()` кита пишет SVG, PNG, превью 1000 px и сразу гоняет
-   линтер вёрстки и проверку палитры.
-4. **0 ERROR.** WARN разбери: исправь или оставь осознанно и скажи пользователю.
-5. **Посмотри глазами:** Read на превью 1000 px; `*-lint.png` — только если
-   есть ERROR/WARN. Пройди визуальный чеклист ниже — скрипт его не заменяет.
-6. **Итерируй** точечно: правки `gen.py` — Edit по месту, не переписывая файл;
-   за один рендер исправляй все найденные замечания сразу, а не по одному.
-   Обычно хватает 2–4 рендеров. **Стоп**, когда 0 ERROR, WARN разобраны и
-   чеклист пройден — дальнейшая полировка не окупается.
-7. **Отдай** PNG (субагент — пути в отчёте); `gen.py` и SVG сохрани рядом с результатом —
-   по ним картинку правят через неделю. Иллюстрации клиентов в репозиторий
-   плагина не кладутся. Приложить к задаче — тем способом, что принят у
-   пользователя (скилл или MCP трекера, если подключены).
+1. **Question and form.** State the one question of the picture. Pick the form:
+   flow (arrows), time (scale), comparison (table, bars), state (tiles,
+   statuses). It does not fit — two pictures, not smaller type.
+2. **Facts apart from layout.** Data as lists/dicts at the top of `gen.py`,
+   layout on the kit below. Only checked numbers, with dates and units.
+   Start from a copy of `examples/hello.py`; the API is in
+   `references/kit-api.md` — read it **once**. Do not read `kit.py` whole
+   (56 KB in context until the end of the job): for a detail,
+   `grep -n "^def name" -A 25 scripts/kit.py`. The large example
+   `examples/light-architecture/gen.py` — grep for the technique you need, too.
+3. **Render:** the kit's `write()` writes SVG, PNG, a 1000 px preview and runs
+   the layout linter and the palette check right away.
+4. **0 ERROR.** Go through the WARNs: fix them or keep them deliberately and
+   tell the user.
+5. **Look at it:** Read the 1000 px preview; `*-lint.png` only when there are
+   ERRORs/WARNs. Walk the visual checklist below — the script does not replace it.
+6. **Iterate** in place: edit `gen.py` with Edit, do not rewrite the file; fix
+   everything found in one render at once, not one item per render. 2–4
+   renders are usually enough. **Stop** at 0 ERROR, WARNs dealt with and the
+   checklist passed — further polishing does not pay off.
+7. **Hand over** the PNG (a subagent — the paths in its report); keep `gen.py`
+   and the SVG next to the result — they are how the picture gets edited a week
+   later. Client illustrations never go into the plugin repository. Attach it
+   to the ticket the way the user usually does it.
 
-## Темы
+## Themes
 
-| Тема | Когда | Характер |
+| Theme | When | Character |
 |---|---|---|
-| `light` (по умолчанию) | отчёты, задачи в трекере, клиенты | пастельная заливка + рамка средней насыщенности + тёмный заголовок того же тона, холодные серо-синие нейтральные |
-| `graphite` | мало цветных смыслов, нужно вести взгляд по главному | почти монохром, белые карточки с тонкой рамкой, один акцент только на главном потоке |
-| `night` | слайды, созвоны с показом экрана | глубокий сине-графитовый фон, приглушённые акценты |
+| `light` (default) | reports, tickets, clients | pastel fill + mid-saturation border + dark title of the same hue, cool slate neutrals |
+| `graphite` | few colour meanings, the eye must follow the main flow | near-monochrome, white cards with a hairline border, one accent on the main flow only |
+| `night` | slides, screen-shared calls | deep blue-graphite page, muted accents |
 
-**Рисуй в `light`.** Если другой стиль уместнее (картинка пойдёт в слайды —
-`night`; один главный поток при почти полном отсутствии цветных смыслов —
-`graphite`; у клиента свой фирменный тон), — **предложи и спроси** одной фразой
-с причиной, до рендера (при работе через субагента — основная сессия, до его
-запуска). Без ответа «да» остаёшься в `light`.
-Пользователь сам назвал тему — делай в ней, не переспрашивая.
+**Draw in `light`.** If another style fits better (the picture goes into
+slides — `night`; one main flow and almost no colour meanings — `graphite`; the
+client has a brand hue), **propose it and ask** in one sentence with the
+reason, before rendering (when working through a subagent — the main session,
+before starting it). Without a "yes", stay in `light`. If the user named the
+theme, use it without asking.
 
-Своя тема для клиента — из пары тонов через `family(hue, chroma)`, контраст
-гарантируется генератором; проверь `palette_check`. Как — `references/kit-api.md`.
-Вид каждой темы — `examples/*/sheet-1000.png` (для вдохновения, не шаблон).
+A custom theme for a client is built from a couple of hues with
+`family(hue, chroma)`; the generator guarantees the contrast; verify with
+`palette_check`. How — `references/kit-api.md`. What each theme looks like —
+`examples/*/sheet-1000.png` (for inspiration, not a template).
 
-## Опорная стилистика (гибко)
+## Reference style (flexible)
 
-**Каркас.** Шапка: заголовок «объект — что это» и подзаголовок с датой, охватом
-и границами («dev и prod, 20.11 · только IDS, ничего не блокирует»). Легенда
-сразу под шапкой — только если цвет или тип линии несёт смысл. Тело на сетке:
-зоны (владелец, граница доверия) → карточки. Внизу ряд из 3 блоков-выводов
-(«почему так построено», «ждём от клиента / дальше у нас / принятые
-ограничения», «решение»). Сноска одной строкой: что не меняется, что не показано.
+**Skeleton.** Header: a title "subject — what it is" and a subtitle with the
+date, scope and limits ("dev and prod, 20.11 · IDS only, blocks nothing"). A
+legend right under the header — only when colour or line type carries meaning.
+The body on a grid: zones (owner, trust boundary) → cards. At the bottom a row
+of 3 conclusion blocks ("why it is built this way", "waiting on the client /
+next on our side / accepted limits", "decision"). A one-line footnote: what
+does not change, what is not shown.
 
-**Цвет — смысл, а не украшение.** Наше — синий, внешнее/клиент — фиолетовый,
-объект картинки — оранжевый (одна зона), ок — зелёный, внимание — охра, красный
-— только сбой и блокер. На картинке не больше 3–4 семейств и 3 цветных потоков.
-Статус — форма + значок, цвет вторичен. Текст — только цветами текста или
-заголовка своего семейства, не цветом рамки.
+**Colour is meaning, not decoration.** Ours — blue, external / client —
+violet, the subject of the picture — orange (one zone), ok — green, attention —
+ochre, red — failures and blockers only. No more than 3–4 families and 3
+coloured flows per picture. A status is shape + glyph, colour comes second.
+Text uses text colours or its family's title colour, never the border colour.
 
-**Сдержанность.** Один главный акцент. Без шрифтов с засечками и «журнальной»
-вычурности, без залитых насыщенных шапок карточек, без неона и градиентов —
-такие варианты пробовали и отвергли: выглядят кичем или режут глаз.
+**Restraint.** One main accent. No serif display type or "magazine" flourish,
+no filled saturated card headers, no neon or gradients — these were tried and
+rejected: they look kitschy or hurt the eyes.
 
-**Стрелки.** Прямая или с одним изломом. Если нужен обход — переставь блоки.
-Подпись — тегом на длинном отрезке самой стрелки, не рядом. Короткой стрелке
-между соседними колонками (зазор < ~130 px) тег не нужен — смысл линии даёт
-легенда; `connect` предупредит, если тег не помещается. Потоки: f1–f3
-различимы и при красно-зелёной слепоте; f4–f5 — только с легендой и тегом.
-WARN tritan на паре f1/f3 в `light` известен и допустим, если у линий есть теги
-или легенда.
+**Arrows.** Straight or with one bend. If a detour is needed, rearrange the
+boxes. The label is a tag on the long segment of the arrow itself, not next to
+it. A short arrow between neighbouring columns (gap < ~130 px) needs no tag —
+the legend gives the meaning; `connect` warns when a tag does not fit. Flows
+f1–f3 stay distinct under red-green colour blindness; f4–f5 only with a legend
+and a tag. The tritan WARN on the f1/f3 pair in `light` is known and acceptable
+when the lines have tags or a legend.
 
-**Текст.** Короткие утверждения, измеренные факты, одна мысль на строку. Язык и
-термины клиента, один язык на картинку (примеры скилла на английском — это не
-повод рисовать клиенту по-английски). Внутренние номера (MR, !41) клиенту — не
-без пояснения. Самый важный вывод — не мелким серым курсивом.
+**Text.** Short statements, measured facts, one idea per line. The reader's
+language and terms, one language per picture (the examples being in English is
+no reason to draw in English for a reader who uses another language). Internal
+references (MR numbers, ticket ids) only with an explanation. The most
+important conclusion is never small grey italics.
 
-## Ориентиры по жанрам
+## Genre pointers
 
-| Жанр | Что обычно помогает |
+| Genre | What usually helps |
 |---|---|
-| Архитектура | зоны слева направо по ходу основного потока; основной поток — одна прямая; управление и секреты — своим типом линии; внизу «почему так построено» |
-| Процесс по шагам | этап = номер в кружке + заголовок + серое «где/кто»; ряд карточек равной высоты со стрелками; стопоры — тегами в карточке; откат — отдельная карточка; последним — измеренная шкала времени |
-| Статус-борд | KPI-плитки (число + строка смысла); таблица «возможность × окружение» со статусами и примечаниями; легенда под таблицей; «ждём / дальше / ограничения» |
-| Роадмап / гант | полосы секций со сводкой справа; задача / владелец / шкала; подписанные линии today и due, не по подписям; шкала обрезана до активного диапазона; Next steps с владельцами и датами |
-| Разбор инцидента | 4–5 KPI с «после»; графики с заголовком-утверждением, строкой метода и выводом; финал «причина → решение → что смотреть после выката» |
+| Architecture | zones left to right along the main flow; the main flow is one straight line; control and secrets in their own line style; "why it is built this way" at the bottom |
+| Step-by-step process | a stage = number in a circle + title + grey "where / who"; a row of equal-height cards with arrows; stop conditions as tags inside cards; rollback as a separate card; a measured timeline last |
+| Status board | KPI tiles (number + one line of meaning); a "capability × environment" table with statuses and notes; legend under the table; "waiting / next / limits" |
+| Roadmap / gantt | section bands with a summary on the right; task / owner / scale; labelled today and due lines that never cross labels; scale cut to the active range; next steps with owners and dates |
+| Incident write-up | 4–5 KPIs with "after"; charts with a claim as the title, a method line and a conclusion; a final "cause → fix → what to watch after rollout" |
 
-## Жёсткие пороги (проверяются скриптами)
+## Hard thresholds (checked by the scripts)
 
-| Что | Порог | Код |
+| What | Threshold | Code |
 |---|---|---|
-| Кегль в превью 1000 px | ≥ 8 px любой текст, ≥ 9 px основной (при W=1600: 13 и 14.5) | SMALL |
-| Перекрытия | тексты не пересекаются между собой и с тегами | TEXT×TEXT, TEXT×TAG |
-| Границы | текст внутри своего блока и холста, ≥ 6 px до рамки | TEXT-EDGE, TEXT-CANVAS, TIGHT-PAD |
-| Линии | не идут по тексту; стрелка не проходит сквозь чужой блок | LINE×TEXT, ARROW×BOX |
-| Зазоры | между соседними блоками ≥ 10 px, в ряду равные | TIGHT-GAP |
-| Контраст | текст ≥ 4.5:1 к своему фону, значок ≥ 3:1 | palette_check |
-| Различимость | статусы и потоки различимы при дальтонизме и в сером (иначе — второй канал: форма, пунктир, подпись) | palette_check |
+| Type size in a 1000 px preview | ≥ 8 px any text, ≥ 9 px body (at W=1600: 13 and 14.5) | SMALL |
+| Overlaps | texts do not overlap each other or tags | TEXT×TEXT, TEXT×TAG |
+| Bounds | text inside its box and the canvas, ≥ 6 px from the border | TEXT-EDGE, TEXT-CANVAS, TIGHT-PAD |
+| Lines | do not run over text; an arrow does not pass through another box | LINE×TEXT, ARROW×BOX |
+| Gaps | ≥ 10 px between neighbouring boxes, equal within a row | TIGHT-GAP |
+| Contrast | text ≥ 4.5:1 to its background, a glyph ≥ 3:1 | palette_check |
+| Distinctness | statuses and flows distinct under colour blindness and in greyscale (otherwise a second channel: shape, dash, label) | palette_check |
 
-Мягко (WARN): обход стрелки, неравные высоты в ряду, пустой низ карточки > 40 %,
-одно слово в последней строке абзаца (ORPHAN), > ~450 слов, H/W > 1.3. WARN оставляют, только если отличие задумано и видно
-зачем: например, карточка короче соседей, чтобы под ней прошла главная стрелка
-(ROW-HEIGHT). Случайная разница высот — выровнять через `cards_row` / `card_h`.
+Soft (WARN): an arrow detour, unequal heights in a row, an empty card bottom
+> 40 %, a single word on the last line of a paragraph (ORPHAN), > ~450 words,
+H/W > 1.3. Keep a WARN only when the difference is intended and its purpose is
+visible: e.g. a card shorter than its neighbours so the main arrow can pass
+below it (ROW-HEIGHT). An accidental height difference — align with
+`cards_row` / `card_h`.
 
-## Визуальный чеклист (то, что скрипт не поймает)
+## Visual checklist (what the script will not catch)
 
-1. За 5 секунд видно главный поток или вывод?
-2. Нет подписей, висящих отдельно от своей стрелки или объекта?
-3. Стрелки не идут против потока и не режут другой поток?
-4. Нет дыр: пустая половина зоны, пустой диапазон шкалы?
-5. Цвет = смысл, легенда совпадает с картинкой, акцент один?
-6. Ритм отступов ровный, нет почти-касаний?
-7. Нет заголовков на 3+ строки и строк из одного слова?
-8. Текст понятен клиенту: без жаргона и внутренних номеров, даты и единицы на месте?
-9. Глифы (✓, …, ⚠, кириллица) отрисованы, а не квадратами или «V»?
+1. Is the main flow or conclusion visible within 5 seconds?
+2. No labels hanging apart from their arrow or object?
+3. No arrows against the flow or cutting across another flow?
+4. No holes: half an empty zone, an empty range on a scale?
+5. Colour = meaning, the legend matches the picture, one accent?
+6. An even rhythm of spacing, no near-touches?
+7. No titles of 3+ lines, no one-word lines?
+8. Is the text clear to the reader: no jargon or internal ids, dates and units in place?
+9. Glyphs (✓, …, ⚠, non-Latin scripts) drawn, not boxes or a "V"?
 
-## Частые ошибки
+## Common mistakes
 
-| Симптом | Причина | Что делать |
+| Symptom | Cause | Fix |
 |---|---|---|
-| вместо ✓ — «V» или квадрат | в шрифте нет глифа | статусы только через функции кита (векторные значки) |
-| текст вылез из блока, хотя линтер чист | метрики считались одним шрифтом, а рендер подставил другой | рендерить через `write()` кита (он подкладывает шрифты рендереру); при inkscape смотреть сверку журнала |
-| узкий шрифт отрисовался широким | inkscape молча подменяет IBM Plex Sans Condensed | не использовать Condensed |
-| линтер чист, а читается плохо | линтер не видит композицию | визуальный чеклист по превью 1000 px |
-| белый текст на цветной плашке/баре | контраст < 4.5:1 | тёмный текст или цвет `title` семейства |
-| matplotlib-график с наездами | кит его не видит | `scripts/mpllint.py`, токены через `mpl_style()` |
-| стрелка упирается в зазор или угол, линтер чист | точку входа задали на глаз | `connect(at=…)` только внутри общего диапазона двух блоков; иначе кит строит излом — проверь превью |
-| одно слово в последней строке (ORPHAN) | ширина подобрана под другой текст | чуть шире карточку или короче фразу |
+| a "V" or a box instead of ✓ | the font has no such glyph | statuses only through the kit's functions (vector glyphs) |
+| text spills out of a box although the linter is clean | metrics came from one font, the renderer used another | render through the kit's `write()` (it hands the fonts to the renderer); with inkscape look at the journal crosscheck |
+| a narrow font rendered wide | inkscape silently substitutes IBM Plex Sans Condensed | do not use Condensed |
+| the linter is clean but it reads badly | the linter does not see composition | the visual checklist on the 1000 px preview |
+| white text on a coloured plate / bar | contrast < 4.5:1 | dark text or the family's `title` colour |
+| a matplotlib chart with overlaps | the kit does not see it | `scripts/mpllint.py`, tokens via `mpl_style()` |
+| an arrow hits a gap or a corner, the linter is clean | the entry point was set by eye | `connect(at=…)` only inside the shared span of the two boxes; otherwise the kit bends the arrow — check the preview |
+| a single word on the last line (ORPHAN) | the width was chosen for different text | a slightly wider card or a shorter phrase |
 
-## Кит: быстрый старт
+## Kit: quick start
 
-`gen.py` кладётся рядом с результатом (папка задачи или scratchpad), кит
-подключается из папки скилла — её путь даётся при загрузке скилла («Base
-directory for this skill»). Запуск — `python3 gen.py`.
+`gen.py` lives next to the result (the task folder or a scratch folder); the
+kit is imported from the skill folder — its path is given when the skill loads
+("Base directory for this skill"). Run it with `python3 gen.py`.
 
 ```python
 import os, sys
-sys.dont_write_bytecode = True                # не мусорить __pycache__ в папке скилла
-sys.path.insert(0, "<base dir этого скилла>/scripts")
+sys.dont_write_bytecode = True                # keep __pycache__ out of the skill folder
+sys.path.insert(0, "<base dir of this skill>/scripts")
 import kit as K
 
-K.use_theme("light")                          # light | graphite | night | путь к своей теме
+K.use_theme("light")                          # light | graphite | night | path to your own theme
 W, M = 1200, K.MARGIN
 K.text(M, 56, "Nightly backup of the orders database", role="title")
 K.text(M, 86, "pg_dump → S3 → restore test · status 20.11.2026", role="subtitle", color=K.MUTED)
 K.legend(M, 120, [("arrow", "f1", "backup data"), ("status", "done", "done")])
 
-cards = K.cards_row(M, 150, W - 2 * M, [      # ряд карточек равной высоты, высота по содержимому
+cards = K.cards_row(M, 150, W - 2 * M, [      # a row of equal-height cards, height from content
     dict(color="ours", title="orders-db", lines=["PostgreSQL 16, 220 GB.", ("pg_dump at 02:00", "mono")]),
     dict(color="external", title="S3 bucket", lines=["Object lock 35 days."]),
     dict(color="ok", title="Restore test", lines=[("last: 18.11, 41 min", K.MUTED)]),
 ], gap=130)
-K.connect(cards[0], cards[1], flow_name="f1", lab="dump · 38 min")   # ортогональная стрелка с тегом
+K.connect(cards[0], cards[1], flow_name="f1", lab="dump · 38 min")   # orthogonal arrow with a tag
 K.connect(cards[1], cards[2], flow_name="f3", lab="restore")
 
 y = cards[0]["y"] + cards[0]["h"] + 40
-foot = K.bullets_row(M, y, W - 2 * M, [       # нижние блоки-выводы равной высоты
+foot = K.bullets_row(M, y, W - 2 * M, [       # equal-height conclusion blocks at the bottom
     ("ok", "Works", [("done", "Restore test passed 6 weeks in a row.")]),
     ("attention", "Decide", [("attention", "Dump time grows 4 % a month: pgBackRest by Q2?")]),
 ])
 K.write("out/backup.svg", W, int(foot[0]["y"] + foot[0]["h"] + M))
 ```
 
-`write()` печатает `layout: … ERROR`, `render: …`, `palette: … FAIL` и итог
-`RESULT: OK | FIX`; при ERROR/FAIL выходит с кодом 1 уже после записи всех
-файлов — смотри `out/<имя>-lint.png`. Рядом: `<имя>.png` (2400 px) и
-`<имя>-1000.png` (превью — его и смотри через Read).
+`write()` prints `layout: … ERROR`, `render: …`, `palette: … FAIL` and a final
+`RESULT: OK | FIX`; on ERROR/FAIL it exits with code 1 after all files are
+written — look at `out/<name>-lint.png`. Next to it: `<name>.png` (2400 px) and
+`<name>-1000.png` (the preview — this is the one to Read).
 
-Остальное — `references/kit-api.md`: роли текста, `card`/`zone`/`connect`
-(`at`, `via`), статусы `mark`, `kpi`, `table`, шкала ганта `scale` + `bar`,
-простые графики `hbars`/`line_chart`, matplotlib (`mpl_style` + `mpllint`),
-своя тема. Рабочие примеры: `examples/hello.py`, `examples/light-architecture/gen.py`.
+The rest is in `references/kit-api.md`: text roles, `card` / `zone` / `connect`
+(`at`, `via`), status `mark`, `kpi` / `kpi_row`, `table`, the gantt scale
+`scale` + `bar`, simple charts `hbars` / `line_chart`, matplotlib (`mpl_style` +
+`mpllint`), a custom theme. Working examples: `examples/hello.py`,
+`examples/light-architecture/gen.py`.
 
-## Окружение
+## Environment
 
-Python 3.10+ и Pillow — обязательно. Шрифты IBM Plex лежат в `fonts/` (OFL) и
-подключаются сами; без них — DejaVu. Рендерер — первый найденный: resvg,
-rsvg-convert, inkscape, cairosvg, headless Chrome. Нет ни одного — получишь SVG
-и отчёт линтера по геометрии, PNG нет; скажи об этом пользователю.
+Python 3.10+ and Pillow are required. IBM Plex fonts live in `fonts/` (OFL) and
+are picked up automatically; without them — DejaVu. Renderer — the first one
+found: resvg, rsvg-convert, inkscape, cairosvg, headless Chrome. None found —
+you get the SVG and the linter report from the geometry, no PNG; tell the user.

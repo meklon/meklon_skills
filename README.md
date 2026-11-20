@@ -1,45 +1,50 @@
 # meklon_skills
 
-Коллекция плагинов Claude Code.
+A collection of Claude Code plugins.
 
-Репозиторий — это **маркетплейс** `meklon-skills` (монорепо): один
-`marketplace.json` в корне перечисляет все плагины, каждый плагин лежит в
-`plugins/<name>/`. Маркетплейс подключается один раз, дальше ставятся нужные
-плагины.
+The repository is a **marketplace** called `meklon-skills` (a monorepo): one
+`marketplace.json` at the root lists every plugin, and each plugin lives in
+`plugins/<name>/`. Add the marketplace once, then install the plugins you need.
 
-| Плагин | Когда срабатывает | Что даёт |
+| Plugin | When it triggers | What it gives |
 |---|---|---|
-| [`diagrams`](plugins/diagrams/README.md) | Нужна схема, статус-борд, роадмап или разбор для отчёта/клиента | Статичные PNG/SVG в едином стиле: три темы, линтер перекрытий и проверка контраста; примеры — в README плагина |
+| [`diagrams`](plugins/diagrams/README.md) | You need a diagram, a status board, a roadmap or an incident write-up for a report or a client | Static PNG/SVG in one consistent style: three themes, an overlap linter and a contrast check; examples in the plugin README |
 
-![Пример: схема резервного копирования, нарисованная скиллом diagrams](plugins/diagrams/docs/example-velero-backup.png)
+![Example: a backup design drawn by the diagrams skill](plugins/diagrams/docs/example-velero-backup.png)
 
-## Быстрый старт
+## Quick start
 
-Выполнить в Claude Code:
+Run in Claude Code:
 
 ```
 /plugin marketplace add meklon/meklon_skills
 /plugin install diagrams@meklon-skills
 ```
 
-## Обновление
+## Updating
 
 ```
 /plugin marketplace update meklon-skills
 /reload-plugins
 ```
 
-Первая команда подтягивает свежий `marketplace.json` и плагины из репозитория,
-вторая перезагружает их в текущей сессии без перезапуска Claude Code.
+The first command pulls the latest `marketplace.json` and plugins from the
+repository; the second reloads them in the current session without restarting
+Claude Code.
 
-## Устройство репозитория
+## Repository layout
 
 ```
-.claude-plugin/marketplace.json     # список плагинов маркетплейса
+.claude-plugin/marketplace.json     # the marketplace's plugin list
 plugins/<name>/.claude-plugin/plugin.json
 plugins/<name>/skills/<skill>/SKILL.md
-plugins/<name>/README.md            # описание и примеры плагина
+plugins/<name>/README.md            # plugin description and examples
 ```
 
-Новый плагин — папка в `plugins/` и запись в `marketplace.json`; версия — в
-`plugin.json`, поднимать при изменениях, чтобы `marketplace update` их подхватил.
+A new plugin is a folder in `plugins/` plus an entry in `marketplace.json`; bump
+the version in `plugin.json` on changes so that `marketplace update` picks them up.
+
+## License
+
+MIT — see [LICENSE](LICENSE). The bundled IBM Plex fonts are under the SIL Open
+Font License 1.1.
